@@ -29,7 +29,7 @@ script "update_permissions" do
   interpreter "bash"
   user "root"
   code <<-EOH
-    chown -R #{node[:mongodb][:user]}.#{node[:mongodb][:group]} $mongodir
+    chown -R #{node[:mongodb][:user]}:#{node[:mongodb][:group]} $mongodir
   EOH
 end
 
