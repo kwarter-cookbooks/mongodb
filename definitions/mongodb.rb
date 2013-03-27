@@ -71,17 +71,34 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     raise "Unknown mongodb type '#{type}'"
   end
   
-  if type != "mongos"
-    daemon = "/usr/bin/mongod"
-    configserver = nil
-    configfile = nil
+if node[:mongodb][:use_config_file]
+    type == "mongos" ? daemon = "/usr/bin/mongos" : daemon = "/usr/bin/mongod"
+    template configfile do
+      action :create
+      source "mongodb.conf.erb"
+      owner "root"
+      group node[:mongodb][:root_group]
+      mode "0644"
+      variables("port" => port,
+                "dbpath" => dbpath,
+                "logpath" => logfile,
+                "replicaset_name" => replicaset_name,
+                "enable_rest" => params[:enable_rest])
+      notifies :restart, "service[#{name}]"
+    end
   else
-    daemon = "/usr/bin/mongos"
-    configfile = nil
-    dbpath = nil
-    configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+    if type != "mongos"
+      daemon = "/usr/bin/mongod"
+      configserver = nil
+      configfile = nil
+    else
+      daemon = "/usr/bin/mongos"
+      configfile = nil
+      dbpath = nil
+      configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
+    end
   end
-  
+    
   # default file
   template "#{node['mongodb']['defaults_dir']}/#{name}" do
     action :create
@@ -127,18 +144,18 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   end
   
   # init script
-  template "#{node['mongodb']['init_dir']}/#{name}" do
+  template "#{node['mongodb']['init_dir']}/#{name}.conf" do
     action :create
     source node[:mongodb][:init_script_template]
     group node['mongodb']['root_group']
     owner "root"
-    mode "0755"
     variables :provides => name
     notifies :restart, "service[#{name}]"
   end
 
   # service
   service name do
+    provider Chef::Provider::Service::Upstart
     supports :status => true, :restart => true
     action service_action
     service_notifies.each do |service_notify|
@@ -158,13 +175,15 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   # replicaset
   if !replicaset_name.nil?
-    rs_nodes = search(
-      :node,
-      "mongodb_cluster_name:#{replicaset['mongodb']['cluster_name']} AND \
+    rs_query = "mongodb_cluster_name:#{replicaset['mongodb']['cluster_name']} AND \
        recipes:mongodb\\:\\:replicaset AND \
-       mongodb_shard_name:#{replicaset['mongodb']['shard_name']} AND \
        chef_environment:#{replicaset.chef_environment}"
-    )
+
+    if replicaset['mongodb']['shard_name']
+      rs_query << " AND mongodb_shard_name:#{replicaset['mongodb']['shard_name']}"
+    end
+
+    rs_nodes = search(:node, rs_query)
   
     ruby_block "config_replicaset" do
       block do
