@@ -21,7 +21,7 @@
 
 define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :start],
     :bind_ip => nil, :port => 27017 , :logpath => "/var/log/mongodb",
-    :dbpath => "/data", :configfile => "/etc/mongodb.conf", :configserver => [],
+    :dbpath => "/data", :configfile => nil, :configserver => [],
     :replicaset => nil, :enable_rest => false, :notifies => [] do
     
   include_recipe "mongodb::default"
@@ -39,7 +39,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   
   dbpath = params[:dbpath]
   
-  configfile = params[:configfile]
+  configfile = params[:configfile] || "/etc/#{name}.conf"
   configserver_nodes = params[:configserver]
   
   replicaset = params[:replicaset]
@@ -67,36 +67,38 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
     end
   end
   
-  if !["mongod", "shard", "configserver", "mongos"].include?(type)
+  unless ["mongod", "shard", "configserver", "mongos"].include?(type)
     raise "Unknown mongodb type '#{type}'"
   end
   
+  if type != "mongos"
+    daemon = "/usr/bin/mongod"
+    configserver = nil
+    template = 'mongodb.conf.erb'
+  else
+    daemon = "/usr/bin/mongos"
+    dbpath = nil
+    configserver = configserver_nodes.collect{|n| "#{n[node[:mongodb][:ec2_dns]]}:#{n['mongodb']['port']}" }.join(",")
+    template = 'mongos.conf.erb'
+  end
+
 if node[:mongodb][:use_config_file]
-    type == "mongos" ? daemon = "/usr/bin/mongos" : daemon = "/usr/bin/mongod"
     template configfile do
       action :create
-      source "mongodb.conf.erb"
+      source template
       owner "root"
       group node[:mongodb][:root_group]
       mode "0644"
-      variables("port" => port,
-                "dbpath" => dbpath,
-                "logpath" => logfile,
-                "replicaset_name" => replicaset_name,
-                "enable_rest" => params[:enable_rest])
+      variables(:port => port,
+                :dbpath => dbpath,
+                :logpath => logfile,
+                :replicaset_name => replicaset_name,
+                :enable_rest => params[:enable_rest],
+                :configserver => configserver)
       notifies :restart, "service[#{name}]"
     end
   else
-    if type != "mongos"
-      daemon = "/usr/bin/mongod"
-      configserver = nil
-      configfile = nil
-    else
-      daemon = "/usr/bin/mongos"
-      configfile = nil
-      dbpath = nil
-      configserver = configserver_nodes.collect{|n| "#{n['fqdn']}:#{n['mongodb']['port']}" }.join(",")
-    end
+    configfile = nil
   end
     
   # default file
@@ -149,7 +151,9 @@ if node[:mongodb][:use_config_file]
     source node[:mongodb][:init_script_template]
     group node['mongodb']['root_group']
     owner "root"
-    variables :provides => name
+    variables :provides => name,
+              :daemon => daemon,
+              :configfile => configfile
     notifies :restart, "service[#{name}]"
   end
 

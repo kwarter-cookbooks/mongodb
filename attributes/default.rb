@@ -70,6 +70,9 @@ else
 
 end
 
+# the field to use for auto-discovery
+default[:mongodb][:ec2_dns] = 'fqdn'
+
 # whether to load a fresh replicaset or use EBS snapshots
 default[:mongodb][:use_ebs_snapshots] = false
 
