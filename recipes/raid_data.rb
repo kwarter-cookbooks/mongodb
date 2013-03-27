@@ -13,14 +13,14 @@ if node[:mongodb][:use_piops]
     disk_type 'io1'
     disk_piops node[:mongodb][:piops].to_i
     level 0
-    filesystem "ext4"
+    filesystem node[:mongodb][:ebs_filesystem]
   end
 else
   create_raided_drives_from_snapshot do
     disk_counts node[:mongodb][:vols].to_i
     disk_size node[:mongodb][:volsize].to_i
     level 0
-    filesystem "ext4"
+    filesystem node[:mongodb][:ebs_filesystem]
   end
 end
 

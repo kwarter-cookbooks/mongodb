@@ -74,6 +74,7 @@ end
 default[:mongodb][:use_ebs_snapshots] = false
 
 # If you're using EBS, piops volume info (only applicable to the raid_data recipe)
+default[:mongodb][:ebs_filesystem] = 'xfs'
 default[:mongodb][:use_piops] = true
 default[:mongodb][:piops] = 1000
 default[:mongodb][:volsize] = 1000
