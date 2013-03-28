@@ -87,3 +87,5 @@ default[:mongodb][:setra] = 512
 
 # identify the host that will be running backups - override this value in your node or role
 default[:mongodb][:backup_host] = nil
+
+default[:backups][:mongo_volumes] = []
