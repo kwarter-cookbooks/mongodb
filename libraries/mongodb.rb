@@ -37,9 +37,22 @@ class Chef::ResourceDefinitionList::MongoDB
       end
     end
     
-    begin
-      connection = Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
-    rescue
+    retries = 6
+    connection = nil
+
+    while !connection and retries > 0
+      begin
+        connection = Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5, :slave_ok => true)
+      rescue
+        retries--
+        if retries > 0
+          Chef::Log.info("MongoDB not accepting connections at 'localhost:#{node['mongodb']['port']} -- sleeping and retrying")
+          sleep(10)
+        end
+      end
+    end
+
+    if !connection
       Chef::Log.warn("Could not connect to database: 'localhost:#{node['mongodb']['port']}'")
       return
     end

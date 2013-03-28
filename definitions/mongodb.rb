@@ -159,7 +159,7 @@ if node[:mongodb][:use_config_file]
 
   # service
   service name do
-    provider Chef::Provider::Service::Upstart
+    provider Chef::Provider::Service::Upstart if node['platform'] == 'ubuntu'
     supports :status => true, :restart => true
     action service_action
     service_notifies.each do |service_notify|
