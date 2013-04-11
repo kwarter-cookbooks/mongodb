@@ -78,7 +78,7 @@ define :mongodb_instance, :mongodb_type => "mongod" , :action => [:enable, :star
   else
     daemon = "/usr/bin/mongos"
     dbpath = nil
-    configserver = configserver_nodes.collect{|n| "#{n[node[:mongodb][:ec2_dns]]}:#{n['mongodb']['port']}" }.join(",")
+    configserver = configserver_nodes.collect{|n| "#{n[node[:mongodb][:ec2_dns]]}:#{n['mongodb']['port']}" }.sort.join(",")
     template = 'mongos.conf.erb'
   end
 
