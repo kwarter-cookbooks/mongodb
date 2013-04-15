@@ -89,3 +89,6 @@ default[:mongodb][:setra] = 512
 default[:mongodb][:backup_host] = nil
 
 default[:backups][:mongo_volumes] = []
+
+default[:mongodb][:mms_source] = "https://mms.10gen.com/settings/10gen-mms-agent.zip"
+default[:mongodb][:mms_dir] = "/var/lib/mms"
