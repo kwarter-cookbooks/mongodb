@@ -8,9 +8,9 @@ stop on runlevel [06]
 script
   start-stop-daemon \
     --start \
-    --chuid <%= @user %> \
+    --chuid <%= @user %>:<%= @group %> \
     --chdir <%= @dir %>/mms-agent \
-    --user <%= @user %>
-    --background
+    --user <%= @user %> \
+    --background \
     --exec  <%= @dir %>/bin/python -- agent.py
 end script

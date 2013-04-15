@@ -25,7 +25,7 @@ template "mms-agent.conf" do
     group node['mongodb']['root_group']
     owner "root"
     mode "0644"
-    variables :dir => node[:mongodb][:mms_dir], :user => node[:mongodb][:user]
+    variables :dir => node[:mongodb][:mms_dir], :user => node[:mongodb][:user], :group => node[:mongodb][:group]
 end
 
 service "mms-agent" do
