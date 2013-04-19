@@ -1,5 +1,6 @@
 include_recipe 'python::virtualenv'
 
+package 'munin-node'
 package 'unzip'
 
 remote_file "#{Chef::Config[:file_cache_path]}/10gen-mms-agent.zip" do
