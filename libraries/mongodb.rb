@@ -159,6 +159,11 @@ class Chef::ResourceDefinitionList::MongoDB
     # lazy require, to move loading this modules to runtime of the cookbook
     require 'rubygems'
     require 'mongo'
+
+    unless shard_nodes
+      Chef::Log.info('No shard nodes')
+      return
+    end
     
     shard_groups = Hash.new{|h,k| h[k] = []}
     
@@ -207,6 +212,11 @@ class Chef::ResourceDefinitionList::MongoDB
     # lazy require, to move loading this modules to runtime of the cookbook
     require 'rubygems'
     require 'mongo'
+
+    unless sharded_collections
+      Chef::Log.info('No sharded collections defined')
+      return
+    end
     
     begin
       connection = Mongo::Connection.new('localhost', node['mongodb']['port'], :op_timeout => 5)
