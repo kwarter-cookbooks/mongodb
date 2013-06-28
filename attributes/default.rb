@@ -92,3 +92,6 @@ default[:backups][:mongo_volumes] = []
 
 default[:mongodb][:mms_source] = "https://mms.10gen.com/settings/10gen-mms-agent.zip"
 default[:mongodb][:mms_dir] = "/var/lib/mms"
+
+default[:mongodb][:backup_script][:is_backup] = false
+default[:mongodb][:backup_script][:backup_path] = "/var/backups"
