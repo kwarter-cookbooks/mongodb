@@ -17,16 +17,14 @@
 # limitations under the License.
 #
 
-if node[:mongodb][:backup_script][:is_backup]
-	cookbook_file "#{node[:mongodb][:backup_script][:backup_path]}/replicaset_backup.sh" do
-	  source "replicaset_backup.sh"
-	  mode 0755
-	end
+cookbook_file "#{node[:mongodb][:backup_script][:backup_path]}/replicaset_backup.sh" do
+	source "replicaset_backup.sh"
+	mode 0755
+end
 
-	cron "Mongodb Nightly Backup" do
-		minute "0"
-		hour "2"
-    command "#{node[:mongodb][:backup_script][:backup_path]}/replicaset_backup.sh"
-    action :create
-	end
+cron "Mongodb Nightly Backup" do
+	minute "0"
+	hour "2"
+  command "#{node[:mongodb][:backup_script][:backup_path]}/replicaset_backup.sh"
+  action :create
 end
