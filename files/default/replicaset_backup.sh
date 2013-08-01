@@ -13,7 +13,7 @@ LogFile="/tmp/$AppName-backup-$DateStamp_$CurrentTime.log"
 IsOK=0
 CmdStatus=""
 BackupPath="/var/backups"
-BackupFileName="`hostname`.$DateStamp.tar"
+BackupFileName="`hostname`.$AppName.$DateStamp.tar"
 
 ## Check whether host is slave and in good state for backup 
 for i in `echo "rs.status()" | $AppBinPath/mongo | egrep "name" | awk -F \" '{print $4}'| cut -f 1 -d :`;
@@ -43,12 +43,11 @@ if [ $? -ne 0 ];
 fi
 
 
-## create directory first 
 ## tar it up
-## scp it over to ops
-sudo tar -czvf $BackupPath/$BackupFileName $LocalBackupPath; sudo gzip $BackupPath/$BackupFileName
+## Push to s3
+sudo tar -czvf ${BackupPath}/${BackupFileName} ${LocalBackupPath}
 
 
-s3cmd put ${BackupPath}/${BackupFileName}.gz s3://backups.kwarter.com/`hostname |cut -d"." -f2`/
+s3cmd put ${BackupPath}/${BackupFileName} s3://backups.kwarter.com/`hostname |cut -d"." -f2`/
 
-sudo rm -rf ${BackupPath}/${BackupFileName}.gz
+sudo rm -rf ${BackupPath}/${BackupFileName}
