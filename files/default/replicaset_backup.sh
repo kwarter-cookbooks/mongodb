@@ -48,6 +48,6 @@ fi
 sudo tar -czvf ${BackupPath}/${BackupFileName} ${LocalBackupPath}
 
 
-s3cmd put ${BackupPath}/${BackupFileName} s3://backups.kwarter.com/`hostname |cut -d"." -f2`/
+s3cmd put ${BackupPath}/${BackupFileName} s3://backups.kwarter.com/`hostname |cut -d"." -f2`/${AppName}/
 
 sudo rm -rf ${BackupPath}/${BackupFileName}
