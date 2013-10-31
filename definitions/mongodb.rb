@@ -236,6 +236,18 @@ if node[:mongodb][:use_config_file]
       action :nothing
     end
   end
+
+  #logrotate
+  logrotate_app "mongo-#{name}" do
+    path logfile
+    frequency "daily"
+    rotate "7"
+    options [:compress, :delaycompress, :notifempty, :sharedscripts, :missingok]
+    create "664 #{node['mongodb']['user']} #{node['mongodb']['group']}"
+    postrotate "kill -SIGUSR1 `cat #{pidfile}`
+find /var/log/mongodb/ -type f -regex \".*\\.\\(log.[0-9].*-[0-9].*\\)\" -exec rm {} \\;"
+  end
+
 end
 
 define :create_raided_drives_from_snapshot, :disk_counts => 4,
